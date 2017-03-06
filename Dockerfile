@@ -24,13 +24,13 @@ RUN apt-get -y --purge --auto-remove remove make gcc gfortran g++
 RUN apt-get -y clean && apt-get -y autoremove && rm -rf /var/lib/{cache,log}/ /tmp/* /var/tmp/*
 
 # Add scripts folder to container
-ADD scripts/findAdducts.R /usr/local/bin/findAdducts.R
-ADD scripts/findIsotopes.R /usr/local/bin/findIsotopes.R
-ADD scripts/groupCorr.R /usr/local/bin/groupCorr.R
-ADD scripts/groupFWHM.R /usr/local/bin/groupFWHM.R
-ADD scripts/xsAnnotate.R /usr/local/bin/xsAnnotate.R
+ADD scripts/findAdducts.R /usr/local/bin/findAdducts.r
+ADD scripts/findIsotopes.R /usr/local/bin/findIsotopes.r
+ADD scripts/groupCorr.R /usr/local/bin/groupCorr.r
+ADD scripts/groupFWHM.R /usr/local/bin/groupFWHM.r
+ADD scripts/xsAnnotate.R /usr/local/bin/xsAnnotate.r
 
-#RUN chmod +x /usr/local/bin/show_chromatogram.r
+RUN chmod +x /usr/local/bin/*.r
 
 # Define Entry point script
 #ENTRYPOINT [ "Rscript" ]
