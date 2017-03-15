@@ -4,7 +4,7 @@ MAINTAINER PhenoMeNal-H2020 Project (phenomenal-h2020-users@googlegroups.com)
 
 LABEL software=CAMERA
 LABEL software.version=1.30.0
-LABEL version=0.1
+LABEL version=0.2
 LABEL Description="CAMERA: Collection of annotation related methods for mass spectrometry data."
 
 # Install packages for compilation
@@ -24,14 +24,10 @@ RUN apt-get -y --purge --auto-remove remove make gcc gfortran g++
 RUN apt-get -y clean && apt-get -y autoremove && rm -rf /var/lib/{cache,log}/ /tmp/* /var/tmp/*
 
 # Add scripts folder to container
-ADD scripts/findAdducts.R /usr/local/bin/findAdducts.r
-ADD scripts/findIsotopes.R /usr/local/bin/findIsotopes.r
-ADD scripts/groupCorr.R /usr/local/bin/groupCorr.r
-ADD scripts/groupFWHM.R /usr/local/bin/groupFWHM.r
-ADD scripts/xsAnnotate.R /usr/local/bin/xsAnnotate.r
-
+ADD scripts/*.r /usr/local/bin/
 RUN chmod +x /usr/local/bin/*.r
 
 # Define Entry point script
 #ENTRYPOINT [ "Rscript" ]
 #CMD [ "/usr/local/bin/show_chromatogram.r" ]
+
