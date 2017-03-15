@@ -12,10 +12,10 @@ RUN apt-get -y update
 RUN apt-get -y --no-install-recommends install make gcc gfortran g++ libnetcdf-dev libblas-dev liblapack-dev
 
 # Install dependencies
-RUN R -e 'install.packages(c("irlba","igraph"), repos="https://mirrors.ebi.ac.uk/CRAN/")'
+RUN R -e 'install.packages(c("irlba","igraph","XML"), repos="https://mirrors.ebi.ac.uk/CRAN/")'
 
 # Install CAMERA
-RUN R -e 'source("https://bioconductor.org/biocLite.R"); biocLite("CAMERA");biocLite("XML")'
+RUN R -e 'source("https://bioconductor.org/biocLite.R"); biocLite("CAMERA")'
 
 # De-install not needed packages
 RUN apt-get -y --purge --auto-remove remove make gcc gfortran g++
