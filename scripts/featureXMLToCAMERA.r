@@ -226,5 +226,5 @@ featureXMLToCAMERA<-function(fileName,onlyXcmsSet=F,sampleName="sample",sampleCl
 toCameraObject<-featureXMLToCAMERA(featureXMLFile,onlyXcmsSet=F,sampleName=sampleName,sampleClass=sampleClass)
 cameraObject<-toCameraObject[[2]]
 varNameForNextStep<-as.character("cameraObject")
-preprocessingSteps<-c(preprocessingSteps,"featureXMLToCamera")
+preprocessingSteps<-c("featureXMLToCamera")
 save(list = c("cameraObject","varNameForNextStep","preprocessingSteps"),file = output)
