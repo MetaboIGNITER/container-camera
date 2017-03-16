@@ -9,13 +9,10 @@ LABEL Description="CAMERA: Collection of annotation related methods for mass spe
 
 # Install packages for compilation
 RUN apt-get -y update
-RUN apt-get -y --no-install-recommends install make gcc gfortran g++ libnetcdf-dev libblas-dev liblapack-dev
+RUN apt-get -y --no-install-recommends install make gcc gfortran g++ libnetcdf-dev libblas-dev liblapack-dev libcurl4-openssl-dev libxml2-dev
 
 # Install dependencies
-RUN R -e 'install.packages(c("irlba","igraph"), repos="https://mirrors.ebi.ac.uk/CRAN/")'
-
-# Install XML package Test
-RUN R -e 'install.packages(c("XML"), repos="http://cran.rstudio.com")'
+RUN R -e 'install.packages(c("irlba","igraph","XML"), repos="https://mirrors.ebi.ac.uk/CRAN/")'
 
 # Install CAMERA
 RUN R -e 'source("https://bioconductor.org/biocLite.R"); biocLite("CAMERA")'
