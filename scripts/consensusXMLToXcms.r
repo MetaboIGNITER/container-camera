@@ -132,5 +132,5 @@ consensusXMLToXCMS<-function(consensusXMLFile=NA)
 xcmsObject<-consensusXMLToXCMS(consensusXMLFile)
 
 varNameForNextStep<-as.character("xcmsObject")
-preprocessingSteps<-c(preprocessingSteps,"consensusXMLToXcms")
+preprocessingSteps<-c("consensusXMLToXcms")
 save(list = c("xcmsObject","varNameForNextStep","preprocessingSteps"),file = output)
