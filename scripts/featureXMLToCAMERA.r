@@ -210,6 +210,7 @@ featureXMLToCAMERA<-function(fileName,onlyXcmsSet=F,sampleName="sample",sampleCl
   tmpPheno<-data.frame(class=sampleClass)
   rownames(tmpPheno)<-sampleName
   tmpXCMSSet@phenoData<-tmpPheno
+  tmpXCMSSet@filepaths<-as.character(fileName)
   cameraObject@xcmsSet<-tmpXCMSSet
   
   cameraObject@groupInfo<-as.matrix(sapply(conversionTmp, as.numeric))  
