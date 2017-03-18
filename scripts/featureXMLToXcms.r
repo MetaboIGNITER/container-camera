@@ -208,7 +208,8 @@ featureXMLToCAMERA<-function(fileName,onlyXcmsSet=F,sampleName="sample",sampleCl
   tmpXCMSSet@rt$corrected<-sort(unique(allMassTraces[,"rt"])) 
   tmpPheno<-data.frame(class=sampleClass) 
   rownames(tmpPheno)<-sampleName 
-  tmpXCMSSet@phenoData<-tmpPheno 
+  tmpXCMSSet@phenoData<-tmpPheno
+  tmpXCMSSet@filepaths<-as.character(fileName)
   cameraObject@xcmsSet<-tmpXCMSSet 
    
   cameraObject@groupInfo<-as.matrix(sapply(conversionTmp, as.numeric))   
