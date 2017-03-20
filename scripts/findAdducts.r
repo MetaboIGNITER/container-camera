@@ -9,6 +9,7 @@ require(xcms)
 require(CAMERA)
 previousEnv<-NA
 output<-NA
+output.pdf<-NA
 ppm<-10
 polarity<-"positive"
 for(arg in args)
@@ -31,15 +32,31 @@ for(arg in args)
   {
     output=as.character(value)
   }
-  
+  if(argCase=="output.pdf")
+  {
+    output.pdf=as.character(value)
+  }
 }
 if(is.na(previousEnv) | is.na(output)) stop("Both input and output need to be specified!\n")
+
+print.pspectra <- function(file, camera.object) {
+	ncols=3
+	nrows=ceiling(length(xcmsSetAdduCharac@pspectra) / nrows)
+	pdf(file, width=30, height=(3*nrows))
+	par(mfrow=c(nrows, ncols))
+	sapply(1:length(camera.object@pspectra), function(x) {
+		plotPsSpectrum(camera.object, pspec=x, maxlabel=5)
+	})
+	dev.off()
+}
 
 load(file = previousEnv)
 
 toIsoCharac<-get(varNameForNextStep)
 
 xcmsSetAdduCharac<-findAdducts(toIsoCharac,polarity = polarity,ppm = ppm)
+
+if(!is.na(output.pdf)) {print.pspectra(output.pdf, xcmsSetAdduCharac)}
 
 preprocessingSteps<-c(preprocessingSteps,"findAdducts")
 
