@@ -41,7 +41,7 @@ if(is.na(previousEnv) | is.na(output)) stop("Both input and output need to be sp
 
 print.pspectra <- function(file, camera.object) {
 	ncols=3
-	nrows=ceiling(length(xcmsSetAdduCharac@pspectra) / nrows)
+	nrows=ceiling(length(camera.object@pspectra) / ncols)
 	pdf(file, width=30, height=(3*nrows))
 	par(mfrow=c(nrows, ncols))
 	sapply(1:length(camera.object@pspectra), function(x) {
