@@ -204,8 +204,10 @@ featureXMLToCAMERA<-function(fileName,onlyXcmsSet=F,sampleName="sample",sampleCl
   tmpXCMSSet@groups<-matrix(nrow = 0,ncol = 0) 
   tmpXCMSSet@groupidx<-list() 
   tmpXCMSSet@filled<-integer(0) 
-  tmpXCMSSet@rt$raw<-sort(unique(allMassTraces[,"rt"])) 
-  tmpXCMSSet@rt$corrected<-sort(unique(allMassTraces[,"rt"])) 
+  tmpXCMSSet@rt$raw<-list()
+  tmpXCMSSet@rt$raw[[1]]<-as.numeric(sort(unique(allMassTraces[,"rt"])))
+  tmpXCMSSet@rt$corrected<-list()
+  tmpXCMSSet@rt$corrected[[1]]<-as.numeric(sort(unique(allMassTraces[,"rt"])))
   tmpPheno<-data.frame(class=sampleClass) 
   rownames(tmpPheno)<-sampleName 
   tmpXCMSSet@phenoData<-tmpPheno
