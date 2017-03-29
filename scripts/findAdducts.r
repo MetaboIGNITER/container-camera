@@ -10,6 +10,7 @@ require(CAMERA)
 previousEnv<-NA
 output<-NA
 output.pdf<-NA
+plotpdf<-F
 ppm<-10
 polarity<-"positive"
 for(arg in args)
@@ -36,6 +37,10 @@ for(arg in args)
   {
     output.pdf=as.character(value)
   }
+  if(argCase=="plotpdf")
+  {
+    plotpdf=as.logical(value)
+  }
 }
 if(is.na(previousEnv) | is.na(output)) stop("Both input and output need to be specified!\n")
 
@@ -56,7 +61,7 @@ toIsoCharac<-get(varNameForNextStep)
 
 xcmsSetAdduCharac<-findAdducts(toIsoCharac,polarity = polarity,ppm = ppm)
 
-if(!is.na(output.pdf)) {print.pspectra(output.pdf, xcmsSetAdduCharac)}
+if(!is.na(output.pdf) & plotpdf==T) {print.pspectra(output.pdf, xcmsSetAdduCharac)}
 
 preprocessingSteps<-c(preprocessingSteps,"findAdducts")
 
