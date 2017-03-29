@@ -29,7 +29,7 @@ load(file = previousEnv)
 
 toBeAnnotated<-get(varNameForNextStep)
 
-xcmsSetAnnotated<-xsAnnotate(toBeAnnotated)
+xcmsSetAnnotated<-xsAnnotate(toBeAnnotated,sample = 1)
 
 preprocessingSteps<-c(preprocessingSteps,"CAMERAAnnotated")
 
