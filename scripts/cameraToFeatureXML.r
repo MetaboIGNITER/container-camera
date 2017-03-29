@@ -9,6 +9,7 @@ if(length(args)==0)stop("No file has been specified! Please select a file for co
 require(xcms)
 require(CAMERA)
 require(XML)
+require(stringr)
 previousEnv<-NA
 output<-NA
 intensityColumn="into"
