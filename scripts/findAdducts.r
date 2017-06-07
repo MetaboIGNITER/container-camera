@@ -13,6 +13,7 @@ output.pdf<-NA
 plotpdf<-F
 ppm<-10
 polarity<-"positive"
+rules<-"primary"
 for(arg in args)
 {
   argCase<-strsplit(x = arg,split = "=")[[1]][1]
@@ -41,6 +42,10 @@ for(arg in args)
   {
     plotpdf=as.logical(value)
   }
+  if(argCase=="rules")
+  { 
+    rules=as.logical(value)
+  }
 }
 if(is.na(previousEnv) | is.na(output)) stop("Both input and output need to be specified!\n")
 
@@ -59,7 +64,12 @@ load(file = previousEnv)
 
 toIsoCharac<-get(varNameForNextStep)
 
-xcmsSetAdduCharac<-findAdducts(toIsoCharac,polarity = polarity,ppm = ppm)
+mode <- "pos"
+if(polarity == "negative") {mode <- "neg"}
+rulefile <- paste("rules/", rules, "_adducts_", mode, ".csv", sep="")
+ruleset <- read.csv(system.file(rulefile, package = "CAMERA")) 
+
+xcmsSetAdduCharac<-findAdducts(toIsoCharac,polarity = polarity,ppm = ppm, rules=ruleset)
 
 if(!is.na(output.pdf) & plotpdf==T) {print.pspectra(output.pdf, xcmsSetAdduCharac)}
 
