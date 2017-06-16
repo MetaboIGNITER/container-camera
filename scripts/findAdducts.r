@@ -44,7 +44,7 @@ for(arg in args)
   }
   if(argCase=="rules")
   { 
-    rules=as.logical(value)
+    rules=as.character(value)
   }
 }
 if(is.na(previousEnv) | is.na(output)) stop("Both input and output need to be specified!\n")
