@@ -8,20 +8,11 @@ LABEL version=0.4
 LABEL Description="CAMERA: Collection of annotation related methods for mass spectrometry data."
 
 # Install packages for compilation
-RUN apt-get -y update
-RUN apt-get -y --no-install-recommends install make gcc gfortran g++ libnetcdf-dev libblas-dev liblapack-dev libcurl4-openssl-dev libxml2-dev
-
-# Install dependencies
-RUN R -e 'install.packages(c("irlba","igraph","XML"), repos="https://mirrors.ebi.ac.uk/CRAN/")'
-
-# Install CAMERA
-RUN R -e 'source("https://bioconductor.org/biocLite.R"); biocLite("CAMERA")'
-
-# De-install not needed packages
-RUN apt-get -y --purge --auto-remove remove make gcc gfortran g++
-
-# Clean-up
-RUN apt-get -y clean && apt-get -y autoremove && rm -rf /var/lib/{cache,log}/ /tmp/* /var/tmp/*
+RUN apt-get -y update && apt-get -y --no-install-recommends install r-base-dev && \
+    R -e 'install.packages(c("irlba","igraph","XML"), repos="https://mirrors.ebi.ac.uk/CRAN/")' && \
+    R -e 'source("https://bioconductor.org/biocLite.R"); biocLite("CAMERA")' && \
+    apt-get -y --purge --auto-remove remove r-base-dev && \
+    apt-get -y clean && apt-get -y autoremove && rm -rf /var/lib/{cache,log}/ /tmp/* /var/tmp/*
 
 # Add scripts folder to container
 ADD scripts/*.r /usr/local/bin/
