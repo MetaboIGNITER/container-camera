@@ -1,5 +1,5 @@
 # CAMERA
-Version: 1.30.0
+Version: 1.32.0
 
 ## Short Description
 Collection of annotation related methods for mass spectrometry data.
@@ -32,6 +32,9 @@ Steffen Neumann
 ## Container Contributors
 
 - [Kristian Peters](https://github.com/korseby) (IPB-Halle)
+- [Christoph Ruttkies](https://github.com/c-ruttkies) (IPB-Halle)
+- [Pablo Moreno](https://github.com/pcm32) (IPB-Halle)
+- [Payam Emami](https://github.com/PayamEmami) (Uppsala U. - CARAMBA Clinical Group)
 
 ## Website
 
@@ -40,6 +43,49 @@ Steffen Neumann
 ## Git Repository
 
 - https://github.com/sneumann/CAMERA
+
+## Installation
+
+CAMERA is present on all PhenoMeNal Galaxy instances on deployed Cloud Research Environments, under the MS category in the tool bar to the left of the screen. No installation is needed hence on PhenoMeNal Cloud Research Environments.
+
+For advanced Docker usage:
+
+- Go to the directory where the dockerfile is.
+- Create container from dockerfile:
+
+```
+docker build -t camera .
+```
+
+Alternatively, pull from repo:
+
+```
+docker pull container-registry.phenomenal-h2020.eu/phnmnl/camera
+```
+
+## Usage Instructions
+
+On a PhenoMeNal Cloud Research Environment, go to MS tool category, and then click on CAMERA, and fill the expected input files, then press Run. 
+
+Alternatively, to use locally through the docker image:
+
+```
+docker run --entrypoint=<script-name> container-registry.phenomenal-h2020.eu/phnmnl/camera <arguments for script>
+```
+
+Where script can be any of: 
+
+```
+cameraToFeatureXML.r
+featureXMLToCAMERA.r
+findAdducts.r
+groupCorr.r
+xsAnnotate.r
+consensusXMLToXcms.r
+featureXMLToXcms.r
+findIsotopes.r
+groupFWHM.r
+```
 
 ## Publications
 
