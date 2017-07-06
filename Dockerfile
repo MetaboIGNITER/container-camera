@@ -1,10 +1,10 @@
-FROM container-registry.phenomenal-h2020.eu/phnmnl/xcms:latest
+FROM container-registry.phenomenal-h2020.eu/phnmnl/xcms:v1.52.0_cv0.5
 
 MAINTAINER PhenoMeNal-H2020 Project (phenomenal-h2020-users@googlegroups.com)
 
 LABEL software=CAMERA
 LABEL software.version=1.30.0
-LABEL version=0.2
+LABEL version=0.3
 LABEL Description="CAMERA: Collection of annotation related methods for mass spectrometry data."
 
 # Install packages for compilation
