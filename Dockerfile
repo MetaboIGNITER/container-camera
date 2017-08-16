@@ -13,7 +13,7 @@ LABEL tags="Metabolomics"
 
 # Install packages for compilation
 RUN apt-get -y update && apt-get -y --no-install-recommends install r-base-dev && \
-    R -e 'install.packages(c("irlba","igraph","XML"), repos="https://mirrors.ebi.ac.uk/CRAN/")' && \
+    R -e 'install.packages(c("irlba","igraph","XML","intervals"), repos="https://mirrors.ebi.ac.uk/CRAN/")' && \
     R -e 'source("https://bioconductor.org/biocLite.R"); biocLite("CAMERA")' && \
     apt-get -y --purge --auto-remove remove r-base-dev && \
     apt-get -y clean && apt-get -y autoremove && rm -rf /var/lib/{cache,log}/ /tmp/* /var/tmp/*
