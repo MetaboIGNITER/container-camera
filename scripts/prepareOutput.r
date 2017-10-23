@@ -381,7 +381,7 @@ coverage<-sep_covWithGroup(peakMatrix,groups)
 
 for(gr in unique(groups))
 {
-coverageLogical<-coverageLogical & (coverage[[x]]>sampleCoverage)
+coverageLogical<-coverageLogical & (coverage[[gr]]>sampleCoverage)
 }
 
 }
