@@ -372,7 +372,7 @@ if(sampleCoverageMethod=="global")
 
 groups<-rep("g",nrow(sampleMetaData))
 coverage<-sep_covWithGroup(peakMatrix,groups)
-coverageLogical<-coverage$g>sampleCoverage
+coverageLogical<-coverage[[2]]$g>sampleCoverage
 }else{
 
 groups<-sampleMetaData[,sampleCoverageMethod]
@@ -381,7 +381,7 @@ coverage<-sep_covWithGroup(peakMatrix,groups)
 
 for(gr in unique(groups))
 {
-coverageLogical<-coverageLogical & (coverage[[gr]]>sampleCoverage)
+coverageLogical<-coverageLogical & (coverage[[2]][[gr]]>sampleCoverage)
 }
 
 }
