@@ -76,6 +76,8 @@ onlyReportWithID<-T
 combineReplicate<-F
 combineReplicateColumn<-"rep"
 iflog<-F
+sampleCoverage<-0
+sampleCoverageMethod<-"global"
 for(arg in args)
 {
   argCase<-strsplit(x = arg,split = "=")[[1]][1]
@@ -144,6 +146,14 @@ for(arg in args)
    if(argCase=="log")
   {
     iflog=as.logical(value)
+  }
+  if(argCase=="sampleCoverage")
+  {
+    sampleCoverage=as.numeric(value)
+  }
+  if(argCase=="sampleCoverageMethod")
+  {
+    sampleCoverageMethod=as.character(value)
   }
   if(argCase=="outputPeakTable")
   {
@@ -334,6 +344,49 @@ if(!onlyReportWithID)
 if(iflog)
 {
 peakMatrix<-log2(peakMatrix)
+}
+sep_covWithGroup<-function(X,groups)
+{
+  lft_f<-X
+  
+  
+  dt<-list()
+  dt_cov<-list()
+  for(x in unique(groups))
+  {
+    assign(x,lft_f[,groups==x])
+    assign(paste(x,"_cov",sep=""),(apply((!is.na(get(x))),1,function(x1){sum(x1)})/dim(get(x))[2])*100)
+    dt[[x]]<-get(x)
+    dt_cov[[x]]<-get(paste(x,"_cov",sep=""))
+  }
+  
+  
+  return(list(dt,dt_cov))
+}
+
+if(sampleCoverage>0)
+{
+coverageLogical<-rep(T,nrow(peakMatrix))
+if(sampleCoverageMethod=="global")
+{
+
+groups<-rep("g",nrow(sampleMetaData))
+coverage<-sep_covWithGroup(peakMatrix,groups)
+coverageLogical<-coverage[[2]]$g>sampleCoverage
+}else{
+
+groups<-sampleMetaData[,sampleCoverageMethod]
+
+coverage<-sep_covWithGroup(peakMatrix,groups)
+
+for(gr in unique(groups))
+{
+coverageLogical<-coverageLogical & (coverage[[2]][[gr]]>sampleCoverage)
+}
+
+}
+peakMatrix<-peakMatrix[coverageLogical==T,]
+VariableData<-VariableData[coverageLogical==T,]
 }
 peakMatrix<-cbind.data.frame(dataMatrix=VariableData[,"variableMetadata"],peakMatrix,stringsAsFactors = F)
 VariableData<-sapply(VariableData, gsub, pattern="\'|#", replacement="")
