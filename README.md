@@ -1,5 +1,5 @@
 # CAMERA
-Version: 1.32.0
+Version: 1.33.3
 
 ## Short Description
 Collection of annotation related methods for mass spectrometry data.
