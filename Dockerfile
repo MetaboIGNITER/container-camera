@@ -1,4 +1,4 @@
-FROM container-registry.phenomenal-h2020.eu/phnmnl/xcms:dev_v3.0.0_cv0.1.72
+FROM container-registry.phenomenal-h2020.eu/phnmnl/xcms:dev_v1.53.1_cv0.1.79
 
 MAINTAINER PhenoMeNal-H2020 Project (phenomenal-h2020-users@googlegroups.com)
 
