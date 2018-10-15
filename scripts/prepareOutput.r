@@ -14,7 +14,7 @@ ppmCal<-function(run,ppm)
 {
   return((run*ppm)/1000000)
 }
-metFragToCamera<-function(metFragSearchResult=NA,cameraObject=NA,ppm=5,MinusTime=5,PlusTime=5)
+metFragToCamera<-function(metFragSearchResult=NA,cameraObject=NA,ppm=5,MinusTime=5,PlusTime=5,method="fast")
 {
   #metFragSearchResult<-bb
   IDResults<-metFragSearchResult
@@ -22,9 +22,12 @@ metFragToCamera<-function(metFragSearchResult=NA,cameraObject=NA,ppm=5,MinusTime
   listofPrecursorsmz<-c()
   listofPrecursorsmz<-IDResults[,"parentMZ"]
   listofPrecursorsrt<-IDResults[,"parentRT"]
-  
+  CamerartLowColumnIndex<-which(colnames(cameraObject@groupInfo)=="rtmin")
+  CamerartHighColumnIndex<-which(colnames(cameraObject@groupInfo)=="rtmax")
   CameramzColumnIndex<-which(colnames(cameraObject@groupInfo)=="mz")
-  
+    imatch=NA
+  if(method=="regular")
+      {
   MassRun1<-Intervals_full(cbind(listofPrecursorsmz,listofPrecursorsmz))
   
   MassRun2<-Intervals_full(cbind(cameraObject@groupInfo[,CameramzColumnIndex]-
@@ -34,8 +37,7 @@ metFragToCamera<-function(metFragSearchResult=NA,cameraObject=NA,ppm=5,MinusTime
   
   Mass_iii <- interval_overlap(MassRun1,MassRun2)
   
-  CamerartLowColumnIndex<-which(colnames(cameraObject@groupInfo)=="rtmin")
-  CamerartHighColumnIndex<-which(colnames(cameraObject@groupInfo)=="rtmax")
+
   
   TimeRun1<-Intervals_full(cbind(listofPrecursorsrt,listofPrecursorsrt))
   
@@ -44,6 +46,38 @@ metFragToCamera<-function(metFragSearchResult=NA,cameraObject=NA,ppm=5,MinusTime
   Time_ii <- interval_overlap(TimeRun1,TimeRun2)
   
   imatch = mapply(intersect,Time_ii,Mass_iii)
+   }else if(method=="fast")
+      {
+      featureMzs<-cbind(cameraObject@groupInfo[,CameramzColumnIndex]-
+                    ppmCal(cameraObject@groupInfo[,CameramzColumnIndex],ppm),
+                  cameraObject@groupInfo[,CameramzColumnIndex]+
+                    ppmCal(cameraObject@groupInfo[,CameramzColumnIndex],ppm))
+
+featureRTs<-cbind(cameraObject@groupInfo[,CamerartLowColumnIndex]-MinusTime,
+                  cameraObject@groupInfo[,CamerartHighColumnIndex]+PlusTime)
+
+imatch<-list()
+for(i in 1:length(listofPrecursorsmz))
+{
+  mz<-listofPrecursorsmz[i]
+  rt<-listofPrecursorsrt[i]
+
+  imatch[[i]]<-which(featureMzs[,1]<mz & featureMzs[,2]>mz & featureRTs[,1]<rt & featureRTs[,2]>rt)
+  
+  
+}
+ }else if (method=="par"){
+      featureMzs<-cbind(cameraObject@groupInfo[,CameramzColumnIndex]-
+                    ppmCal(cameraObject@groupInfo[,CameramzColumnIndex],ppm),
+                  cameraObject@groupInfo[,CameramzColumnIndex]+
+                    ppmCal(cameraObject@groupInfo[,CameramzColumnIndex],ppm))
+
+featureRTs<-cbind(cameraObject@groupInfo[,CamerartLowColumnIndex]-MinusTime,
+                  cameraObject@groupInfo[,CamerartHighColumnIndex]+PlusTime)
+     imatch <-mclapply(c(1:length(listofPrecursorsmz)),FUN =function(x) { which(featureMzs[,1]<listofPrecursorsmz[x] & featureMzs[,2]>listofPrecursorsmz[x] & featureRTs[,1]<listofPrecursorsrt[x] & featureRTs[,2]>listofPrecursorsrt[x])},mc.cores=ncore)
+      
+      }else{stop("Method should be either fast,par and regular")}
+    
   listOfMS2Mapped<-list()
   for (i in 1:length(imatch)) {
     for(j in imatch[[i]])
@@ -78,6 +112,8 @@ combineReplicateColumn<-"rep"
 iflog<-F
 sampleCoverage<-0
 sampleCoverageMethod<-"global"
+ncore=1
+Ifnormalize<-NA
 for(arg in args)
 {
   argCase<-strsplit(x = arg,split = "=")[[1]][1]
@@ -167,7 +203,14 @@ for(arg in args)
   {
     outputMetaData=as.character(value)
   }
-  
+  if(argCase=="ncore")
+  {
+    ncore=as.numeric(value)
+  }
+    if(argCase=="normalize")
+  {
+    Ifnormalize=as.numeric(value)
+  }
   
 }
 
@@ -185,7 +228,7 @@ phenotypeInfo<-read.csv(file = phenotypeInfoFile,stringsAsFactors = F)
 metfragRes<-read.table(file = scoreInput,header = T,sep = sepScore,quote="",stringsAsFactors = F,comment.char = "")
 
 mappedToCamera<-metFragToCamera(metFragSearchResult = metfragRes,
-                                cameraObject = cameraObject,MinusTime = rtTol,PlusTime = rtTol,ppm = ppmTol)
+                                cameraObject = cameraObject,MinusTime = rtTol,PlusTime = rtTol,ppm = ppmTol,method="par")
 
 
 VariableData<-data.frame(matrix("Unknown",nrow = nrow(cameraPeakList),
@@ -196,6 +239,7 @@ colnames(VariableData)<-c("variableMetadata",colnames(metfragRes))
 
 VariableData[,"variableMetadata"]<-paste("variable_",1:nrow(cameraPeakList),sep="")
 
+cat("H2\n")
 for(rnName in rownames(cameraPeakList))
 {
   if(rnName %in% names(mappedToCamera$mapped))
@@ -212,6 +256,7 @@ tmpId<-tmpId[which.min(tmpId[,scoreColumn]),]
                  c(2:ncol(VariableData))]<-tmpId
   }
 }
+
 
 if(impute)
 {
@@ -251,6 +296,7 @@ tmpId<-tmpIDs[which.min(tmpIDs[,scoreColumn]),]
 
 
 
+
 peakMatrix<-c()
 peakMatrixNames<-c()
 peakMatrixTMP<-cameraPeakList
@@ -279,6 +325,7 @@ for(i in 1:nrow(cameraObject@xcmsSet@phenoData))
     
   }
 }
+
 
 
 
@@ -332,19 +379,76 @@ if(combineReplicate)
 }
 
 
+
 peakMatrix<-data.frame(peakMatrix)
 colnames(peakMatrix)<-peakMatrixNames
 
+if(iflog)
+{
+peakMatrix<-log2(peakMatrix)
+}
+normalize.median <- function(x, weights = NULL) {
+	l <- dim(x)[2]
+	
+	if(is.null(weights)) {
+		for(j in 1:l)
+			x[, j] <- x[, j] - median(x[, j], na.rm = TRUE)
+	} else {
+		for(j in 1:l)
+			x[, j] <- x[, j] - weighted.median(x[, j], weights[, j],
+				na.rm = TRUE)
+	}
 
+	x
+}  
+ # normalize.regression
+# based on pek
+norm.regression <- function(x) {
+		y<-rowMedians(as.matrix(x), na.rm=TRUE)		
+		for(j in 1:ncol(x)){
+		fit<-lm(y~x[,j],na.action=na.exclude)
+		x[,j] <- predict(fit,na.action=na.exclude)
+		}
+return(x)
+}
+normalize.reference <- function(x) {
+{
+		sel <-1
+		y<-1
+		for(j in 1:ncol(x)){
+		as.matrix(sel)
+		sel[j] <- length(which(!is.na(x[,j])))
+		ref<-which.max(sel[])
+		}
+		for(j in 1:ncol(x))
+		{
+		     y[j]<-median(x[, j]-x[,ref], na.rm = TRUE)
+		     x[, j] <- (x[, j]-y[j])
+
+}
+
+return(x)
+}
+}
+
+if(!is.na(Ifnormalize))
+{
+    if(Ifnormalize==1)
+peakMatrix<-limma::normalizeCyclicLoess(peakMatrix)
+    if(Ifnormalize==2)
+peakMatrix<-normalize.median(peakMatrix)
+    if(Ifnormalize==3)
+peakMatrix<-normalize.reference(peakMatrix)
+    if(Ifnormalize==4)
+peakMatrix<-norm.regression(peakMatrix)
+    
+}
 if(!onlyReportWithID)
 {
   peakMatrix<-peakMatrix[VariableData[,2]!="Unknown",]
   VariableData<-VariableData[VariableData[,2]!="Unknown",]
 }
-if(iflog)
-{
-peakMatrix<-log2(peakMatrix)
-}
+
 sep_covWithGroup<-function(X,groups)
 {
   lft_f<-X
