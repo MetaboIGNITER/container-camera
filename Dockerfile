@@ -3,8 +3,8 @@ FROM container-registry.phenomenal-h2020.eu/phnmnl/xcms:dev_v1.53.1_cv0.1.84
 MAINTAINER PhenoMeNal-H2020 Project (phenomenal-h2020-users@googlegroups.com)
 
 LABEL software="CAMERA"
-LABEL software.version="1.33.3"
-LABEL version="0.11"
+LABEL software.version="1.33.4"
+LABEL version="0.12"
 LABEL description="CAMERA: Collection of annotation related methods for mass spectrometry data."
 LABEL website="https://github.com/sneumann/CAMERA"
 LABEL documentation="https://github.com/phnmnl/container-camera/blob/master/README.md"
