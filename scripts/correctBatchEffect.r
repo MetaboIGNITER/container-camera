@@ -39,6 +39,10 @@ parser$add_argument("-c", "--covariates", type="character",
                     help="one or more of the column names (first row) of your sample metadata showing batch variable. If more than one column selected, it should be separated by space or , or \\| or tab or |")
 
 
+parser$add_argument("-g", "--group", type="character",
+                    help="Optional treatment conditions to be preserved")
+					
+
 # parse arguments
 args <- parser$parse_args()
 
@@ -166,11 +170,37 @@ if ( args$verbose ) {
 }
 suppressWarnings(library(limma))
 
+group<-NULL
+design<-NULL
+# check if batch 1 is in meta data
+if(!is.null(args$group) && args$group%in%colnames(samDF))
+{
+  group <- matrix(samDF[, args$group], ncol = 1, dimnames = list(rownames(xMN), args$group))
+  design<-model.matrix(~0+group)
+
+}else if(!is.null(args$group)){
+
+  errorMessage<-"Group was not found in the column names (first row) of your sample metadata!"
+  write(errorMessage,stderr())
+  stop(errorMessage,
+       call. = FALSE)
+}
+
 if ( args$verbose ) { 
   write("Performing the correction ...\n", stdout()) 
 }
 
+peakMatrix<-NA
+if(!is.null(design))
+{
+
+peakMatrix<-limma::removeBatchEffect(t(xMN),batch = batch1,batch2 = batch2,covariates = covariates,design=design)
+
+}else{
+
 peakMatrix<-limma::removeBatchEffect(t(xMN),batch = batch1,batch2 = batch2,covariates = covariates)
+
+}
 
 if ( args$verbose ) { 
   write("Done! writing the results out ...\n", stdout()) 

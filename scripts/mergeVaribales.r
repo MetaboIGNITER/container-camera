@@ -34,6 +34,8 @@ parser$add_argument("-s", "--sampleMetadata_in", type="character",
 parser$add_argument("-p", "--sampleVariable_in", type="character", 
                     help="Input multiple data matrix containing variable information. They have to be separated by space or , or \\| or tab or |. The order MUST be identical to dataMatrix_in")
 
+parser$add_argument("-d", "--removeDup", type="character",
+                    help="Input name of a column which is in metadata. Any duplicated variable in this column will be removed. Within duplicated variables the most intense one (based on mean) will be retained!")
 
 
 # parse arguments
@@ -142,7 +144,7 @@ for(i in 1:length(dataMatrixFiles))
   # generate error message if row and column names are not identical
   if(!identical(rownames(xMN), rownames(samDF)))
   {
-    errorMessage<-"Sample names (or number) in the data matrix (first row) and sample metadata (first column) are not identical; use the 'Check Format' module in the 'Quality Control' section"
+    errorMessage<-"Sample names (or number) in the data matrix (first row) and sample metadata (first column) are not identical; use the 'Check Format' module in the 'Quality Control' section "
     errorMessage<-paste(errorMessage,"files: ", dataMatrix_inFile,", ",sampleMetadata_inFile,"\n",sep="")
     write(errorMessage,stderr())
     stop(errorMessage,
@@ -151,8 +153,8 @@ for(i in 1:length(dataMatrixFiles))
   
   if(!identical(colnames(xMN), rownames(varDF)))
   {
-    errorMessage<-"Variable names (or number) in the data matrix (first column) and sample metadata (first column) are not identical; use the 'Check Format' module in the 'Quality Control' section"
-    errorMessage<-paste(errorMessage,"files: ", dataMatrix_inFile,", ",sampleMetadata_inFile,"\n",sep="")
+    errorMessage<-"Variable names (or number) in the data matrix (first column) and sample variable (first row) are not identical; use the 'Check Format' module in the 'Quality Control' section "
+    errorMessage<-paste(errorMessage,"files: ", dataMatrix_inFile,", ",sampleVariable_inFile,"\n",sep="")
     write(errorMessage,stderr())
     stop(errorMessage,
          call. = FALSE)
@@ -172,7 +174,7 @@ for(i in 1:length(dataMatrixFiles))
   }else{
     varDF$preComFile<-basename(sampleVariable_inFile)
     varDF$oldVarName<-rownames(varDF)
-    rownames(varDF)<-paste("variable_",c((ncol(xMN)+1):(ncol(xMN)+nrow(varDF))),sep="")
+    rownames(varDF)<-paste("variable_",c((ncol(xMNCombine)+1):(ncol(xMNCombine)+nrow(varDF))),sep="")
 
     varDFCombine<-rbind(varDFCombine,varDF)
     colnames(xMN)<-rownames(varDF)
@@ -190,8 +192,7 @@ if ( args$verbose ) {
 
 if(!identical(rownames(xMNCombine), rownames(samDF)))
 {
-  errorMessage<-"Sample names (or number) in the data matrix (first row) and sample metadata (first column) are not identical; use the 'Check Format' module in the 'Quality Control' section"
-  errorMessage<-paste(errorMessage,"files: ", dataMatrix_inFile,", ",sampleMetadata_inFile,"\n",sep="")
+  errorMessage<-"Sample names (or number) in the data matrix (first row) and sample metadata (first column) are not identical in the combined data; use the 'Check Format' module in the 'Quality Control' section "
   write(errorMessage,stderr())
   stop(errorMessage,
        call. = FALSE)
@@ -199,9 +200,8 @@ if(!identical(rownames(xMNCombine), rownames(samDF)))
 
 if(!identical(colnames(xMNCombine), rownames(varDFCombine)))
 {
-  errorMessage<-"Variable names (or number) in the data matrix (first column) and sample metadata (first column) are not identical; use the 'Check Format' module in the 'Quality Control' section"
-  errorMessage<-paste(errorMessage,"files: ", dataMatrix_inFile,", ",sampleMetadata_inFile,"\n",sep="")
-  write(errorMessage,stderr())
+  errorMessage<-"Variable names (or number) in the data matrix (first column) and sample variable (first row) are not identical in the combined data; use the 'Check Format' module in the 'Quality Control' section "
+write(errorMessage,stderr())
   stop(errorMessage,
        call. = FALSE)
 }
@@ -209,10 +209,59 @@ if(!identical(colnames(xMNCombine), rownames(varDFCombine)))
 if ( args$verbose ) { 
   write("Everything seems OK. Final formatting ...\n", stdout()) 
 }
-xMNCombine<-xMNCombine
-peakMatrix<-cbind.data.frame(dataMatrix=rownames(xMNCombine),xMNCombine,stringsAsFactors = F)
+xMNCombine<-t(xMNCombine)
+
+
+peakMatrix<-(cbind.data.frame(dataMatrix=rownames(xMNCombine),(xMNCombine),stringsAsFactors = F))
 VariableData<-cbind.data.frame(variableMetadata=rownames(varDFCombine),varDFCombine,stringsAsFactors = F)
 VariableData<-sapply(VariableData, gsub, pattern="\'|#", replacement="")
+
+if(!is.null(args$removeDup))
+{
+if ( args$verbose ) {
+  write("Removing duplicated variables ... \n", stdout())
+}
+
+if(!args$removeDup%in%colnames(VariableData))
+{
+
+
+  errorMessage<-"is not in sample variable (first row) of the combined data; use the 'Check Format' module in the 'Quality Control' section "
+  errorMessage<-paste(args$removeDup,errorMessage,sep=" ")
+write(errorMessage,stderr())
+  stop(errorMessage,
+       call. = FALSE)
+
+
+}else{
+
+toBeRemoved<-c()
+
+for(x in unique(na.omit(VariableData[,args$removeDup])))
+
+{
+
+if(sum(VariableData[,args$removeDup]==x & !is.na(VariableData[,args$removeDup]))>1)
+{
+
+
+varNameTMP<-VariableData[VariableData[,args$removeDup]==x,1]
+dataTMP<-peakMatrix[peakMatrix[,"dataMatrix"]%in%varNameTMP,-1]
+varNameSel<-peakMatrix[peakMatrix[,"dataMatrix"]%in%varNameTMP,"dataMatrix"]
+varNameSel<-varNameSel[-which.max(apply(dataTMP,1,mean,na.rm=T))]
+toBeRemoved<-c(toBeRemoved,varNameSel)
+}
+
+}
+VariableData<-VariableData[!VariableData[,"variableMetadata"]%in%toBeRemoved,]
+peakMatrix<-peakMatrix[!peakMatrix[,"dataMatrix"]%in%toBeRemoved,]
+peakMatrix[,"dataMatrix"]<-paste("variable_",c(1:length(peakMatrix[,"dataMatrix"])),sep="")
+VariableData[,"variableMetadata"]<-paste("variable_",c(1:length(VariableData[,"variableMetadata"])),sep="")
+
+}
+
+}
+
 if ( args$verbose ) { 
   write("Writing output ...\n", stdout()) 
 }
