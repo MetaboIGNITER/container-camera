@@ -29,22 +29,22 @@ metFragToCamera<-function(metFragSearchResult=NA,cameraObject=NA,ppm=5,MinusTime
   if(method=="regular")
       {
   MassRun1<-Intervals_full(cbind(listofPrecursorsmz,listofPrecursorsmz))
-  
+
   MassRun2<-Intervals_full(cbind(cameraObject@groupInfo[,CameramzColumnIndex]-
                                    ppmCal(cameraObject@groupInfo[,CameramzColumnIndex],ppm),
                                  cameraObject@groupInfo[,CameramzColumnIndex]+
                                    ppmCal(cameraObject@groupInfo[,CameramzColumnIndex],ppm)))
-  
-  Mass_iii <- interval_overlap(MassRun1,MassRun2)
-  
 
-  
+  Mass_iii <- interval_overlap(MassRun1,MassRun2)
+
+
+
   TimeRun1<-Intervals_full(cbind(listofPrecursorsrt,listofPrecursorsrt))
-  
+
   TimeRun2<-Intervals_full(cbind(cameraObject@groupInfo[,CamerartLowColumnIndex]-MinusTime,
                                  cameraObject@groupInfo[,CamerartHighColumnIndex]+PlusTime))
   Time_ii <- interval_overlap(TimeRun1,TimeRun2)
-  
+
   imatch = mapply(intersect,Time_ii,Mass_iii)
    }else if(method=="fast")
       {
@@ -63,8 +63,8 @@ for(i in 1:length(listofPrecursorsmz))
   rt<-listofPrecursorsrt[i]
 
   imatch[[i]]<-which(featureMzs[,1]<mz & featureMzs[,2]>mz & featureRTs[,1]<rt & featureRTs[,2]>rt)
-  
-  
+
+
 }
  }else if (method=="par"){
       featureMzs<-cbind(cameraObject@groupInfo[,CameramzColumnIndex]-
@@ -75,9 +75,9 @@ for(i in 1:length(listofPrecursorsmz))
 featureRTs<-cbind(cameraObject@groupInfo[,CamerartLowColumnIndex]-MinusTime,
                   cameraObject@groupInfo[,CamerartHighColumnIndex]+PlusTime)
      imatch <-mclapply(c(1:length(listofPrecursorsmz)),FUN =function(x) { which(featureMzs[,1]<listofPrecursorsmz[x] & featureMzs[,2]>listofPrecursorsmz[x] & featureRTs[,1]<listofPrecursorsrt[x] & featureRTs[,2]>listofPrecursorsrt[x])},mc.cores=ncore)
-      
+
       }else{stop("Method should be either fast,par and regular")}
-    
+
   listOfMS2Mapped<-list()
   for (i in 1:length(imatch)) {
     for(j in imatch[[i]])
@@ -90,7 +90,7 @@ featureRTs<-cbind(cameraObject@groupInfo[,CamerartLowColumnIndex]-MinusTime,
         listOfMS2Mapped[[as.character(j)]]<-
           rbind(listOfMS2Mapped[[as.character(j)]],data.frame(IDResults[i,],stringsAsFactors = F))
       }
-      
+
     }
   }
   return(list(mapped=listOfMS2Mapped))
@@ -114,11 +114,12 @@ sampleCoverage<-0
 sampleCoverageMethod<-"global"
 ncore=1
 Ifnormalize<-NA
+scoreInput<-NA
 for(arg in args)
 {
   argCase<-strsplit(x = arg,split = "=")[[1]][1]
   value<-strsplit(x = arg,split = "=")[[1]][2]
-  
+
   if(argCase=="inputcamera")
   {
     inputCamera=as.character(value)
@@ -142,11 +143,11 @@ for(arg in args)
   if(argCase=="higherTheBetter")
   {
     higherTheBetter=as.logical(value)
-  }  
+  }
   if(argCase=="scoreColumn")
   {
     scoreColumn=as.character(value)
-  }  
+  }
   if(argCase=="impute")
   {
     impute=as.logical(value)
@@ -198,7 +199,7 @@ for(arg in args)
   if(argCase=="outputVariables")
   {
     outputVariables=as.character(value)
-  }  
+  }
   if(argCase=="outputMetaData")
   {
     outputMetaData=as.character(value)
@@ -211,7 +212,7 @@ for(arg in args)
   {
     Ifnormalize=as.numeric(value)
   }
-  
+
 }
 
 
@@ -225,75 +226,87 @@ phenotypeInfo<-read.csv(file = phenotypeInfoFile,stringsAsFactors = F)
 #sepScore<-","
 #if(scoreColumn=="q.value")
   sepScore="\t"
+
+if(!is.na(scoreInput))
+{
 metfragRes<-read.table(file = scoreInput,header = T,sep = sepScore,quote="",stringsAsFactors = F,comment.char = "")
 
 mappedToCamera<-metFragToCamera(metFragSearchResult = metfragRes,
                                 cameraObject = cameraObject,MinusTime = rtTol,PlusTime = rtTol,ppm = ppmTol,method="par")
 
 
-VariableData<-data.frame(matrix("Unknown",nrow = nrow(cameraPeakList),
-                                ncol = (ncol(metfragRes)+1)),stringsAsFactors = F)
+
+  VariableData<-data.frame(matrix("Unknown",nrow = nrow(cameraPeakList),
+                                                                ncol = (ncol(metfragRes)+1)),stringsAsFactors = F)
 
 
-colnames(VariableData)<-c("variableMetadata",colnames(metfragRes))
+  colnames(VariableData)<-c("variableMetadata",colnames(metfragRes))
 
-VariableData[,"variableMetadata"]<-paste("variable_",1:nrow(cameraPeakList),sep="")
+  VariableData[,"variableMetadata"]<-paste("variable_",1:nrow(cameraPeakList),sep="")
 
-cat("H2\n")
-for(rnName in rownames(cameraPeakList))
-{
-  if(rnName %in% names(mappedToCamera$mapped))
+  for(rnName in rownames(cameraPeakList))
   {
-    tmpId<-mappedToCamera$mapped[[rnName]]
-    if(higherTheBetter)
-      {
-tmpId<-tmpId[which.max(tmpId[,scoreColumn]),]
-}else{
-tmpId<-tmpId[which.min(tmpId[,scoreColumn]),]
-}
-      
-    VariableData[VariableData[,"variableMetadata"]==paste("variable_",rnName,sep=""),
-                 c(2:ncol(VariableData))]<-tmpId
-  }
-}
-
-
-if(impute)
-{
-  
-  toBeImputed<-rownames(VariableData[VariableData[,2]=="Unknown",])
-  pcgroups<-cameraPeakList[rownames(cameraPeakList)%in%toBeImputed,"pcgroup"]
-  
-  for(pcgr in pcgroups)
-  {
-    selectedFeatures<-
-      VariableData[,"variableMetadata"]%in%paste("variable_",rownames(cameraPeakList[cameraPeakList[,"pcgroup"]==pcgr,]),sep="") &
-      VariableData[,2]!="Unknown"
-    
-    if(any(selectedFeatures))
+    if(rnName %in% names(mappedToCamera$mapped))
     {
-      tmpIDs<-VariableData[selectedFeatures,]
-      tmpId<-NA
+      tmpId<-mappedToCamera$mapped[[rnName]]
       if(higherTheBetter)
-{
-tmpId<-tmpIDs[which.max(tmpIDs[,scoreColumn]),]
-}else
-{
-tmpId<-tmpIDs[which.min(tmpIDs[,scoreColumn]),]
-}
-        
-      
-      imputedVariables<- paste("variable_",rownames(cameraPeakList[ cameraPeakList[,"pcgroup"]==pcgr,]),sep="")
-      
-      imputedVariables<- VariableData[,"variableMetadata"]%in%imputedVariables & VariableData[,2]=="Unknown"
-      
-      VariableData[imputedVariables,c(2:ncol(VariableData))]<-tmpId[,c(2:ncol(tmpId))]
+        {
+  tmpId<-tmpId[which.max(tmpId[,scoreColumn]),]
+  }else{
+  tmpId<-tmpId[which.min(tmpId[,scoreColumn]),]
+  }
+
+      VariableData[VariableData[,"variableMetadata"]==paste("variable_",rnName,sep=""),
+                   c(2:ncol(VariableData))]<-tmpId
     }
   }
-  
+
+
+  if(impute)
+  {
+
+    toBeImputed<-rownames(VariableData[VariableData[,2]=="Unknown",])
+    pcgroups<-cameraPeakList[rownames(cameraPeakList)%in%toBeImputed,"pcgroup"]
+
+    for(pcgr in pcgroups)
+    {
+      selectedFeatures<-
+        VariableData[,"variableMetadata"]%in%paste("variable_",rownames(cameraPeakList[cameraPeakList[,"pcgroup"]==pcgr,]),sep="") &
+        VariableData[,2]!="Unknown"
+
+      if(any(selectedFeatures))
+      {
+        tmpIDs<-VariableData[selectedFeatures,]
+        tmpId<-NA
+        if(higherTheBetter)
+  {
+  tmpId<-tmpIDs[which.max(tmpIDs[,scoreColumn]),]
+  }else
+  {
+  tmpId<-tmpIDs[which.min(tmpIDs[,scoreColumn]),]
+  }
+
+
+        imputedVariables<- paste("variable_",rownames(cameraPeakList[ cameraPeakList[,"pcgroup"]==pcgr,]),sep="")
+
+        imputedVariables<- VariableData[,"variableMetadata"]%in%imputedVariables & VariableData[,2]=="Unknown"
+
+        VariableData[imputedVariables,c(2:ncol(VariableData))]<-tmpId[,c(2:ncol(tmpId))]
+      }
+    }
+
+  }
+
+
+
+
+}else{
+
+VariableData<-data.frame(matrix("Unknown",nrow = nrow(cameraPeakList),
+                                                              ncol = 2,stringsAsFactors = F))
+colnames(VariableData)<-c("variableMetadata","extraColumn")
+VariableData[,"variableMetadata"]<-paste("variable_",1:nrow(cameraPeakList),sep="")
 }
-
-
 
 
 
@@ -311,7 +324,7 @@ for(i in 1:nrow(cameraObject@xcmsSet@phenoData))
     peakMatrix<-cbind(peakMatrix, peakMatrixTMP[,rownames(cameraObject@xcmsSet@phenoData)[i]])
     if(rename)
     {
-      
+
       peakMatrixNames<-c(peakMatrixNames,phenotypeInfo[index,renameCol])
     }else
     {
@@ -322,7 +335,7 @@ for(i in 1:nrow(cameraObject@xcmsSet@phenoData))
     {
       technicalReps<-c(technicalReps,phenotypeInfo[index,combineReplicateColumn])
     }
-    
+
   }
 }
 
@@ -337,12 +350,12 @@ sampleMetaData<-c()
 phenotypeInfo<-phenotypeInfo[,!grepl(pattern = "step_",x = colnames(phenotypeInfo),fixed=T)]
 if(rename)
 {
-  
+
   sampleMetaData<-phenotypeInfo[,c(renameCol,colnames(phenotypeInfo)[colnames(phenotypeInfo)!=renameCol])]
 }else
 {
   sampleMetaData<-phenotypeInfo
-  
+
 }
 colnames(sampleMetaData)[1]<-"sampleMetadata"
 
@@ -359,7 +372,7 @@ if(combineReplicate)
   {
     if(ncol(data.frame(peakMatrix[,technicalReps==x]))>1)
     {
-      
+
       dataTMP<-apply(data.frame(peakMatrix[,technicalReps==x]),MARGIN = 1,FUN = median,na.rm=T)
       newNames<-c(newNames,as.character(unique(peakMatrixNames[technicalReps==x]))[1])
       newpheno<-rbind(newpheno,sampleMetaData[sampleMetaData[,combineReplicateColumn]==x,][1,])
@@ -372,7 +385,7 @@ if(combineReplicate)
       combinedPeakMatrix<-cbind(combinedPeakMatrix,dataTMP)
     }
   }
-  
+
   peakMatrix<-  combinedPeakMatrix
   peakMatrixNames<-newNames
   sampleMetaData<-newpheno[,colnames(newpheno)!=combineReplicateColumn]
@@ -389,7 +402,7 @@ peakMatrix<-log2(peakMatrix)
 }
 normalize.median <- function(x, weights = NULL) {
 	l <- dim(x)[2]
-	
+
 	if(is.null(weights)) {
 		for(j in 1:l)
 			x[, j] <- x[, j] - median(x[, j], na.rm = TRUE)
@@ -400,11 +413,11 @@ normalize.median <- function(x, weights = NULL) {
 	}
 
 	x
-}  
+}
  # normalize.regression
 # based on pek
 norm.regression <- function(x) {
-		y<-rowMedians(as.matrix(x), na.rm=TRUE)		
+		y<-rowMedians(as.matrix(x), na.rm=TRUE)
 		for(j in 1:ncol(x)){
 		fit<-lm(y~x[,j],na.action=na.exclude)
 		x[,j] <- predict(fit,na.action=na.exclude)
@@ -441,9 +454,9 @@ peakMatrix<-normalize.median(peakMatrix)
 peakMatrix<-normalize.reference(peakMatrix)
     if(Ifnormalize==4)
 peakMatrix<-norm.regression(peakMatrix)
-    
+
 }
-if(!onlyReportWithID)
+if(!onlyReportWithID & !is.na(scoreInput))
 {
   peakMatrix<-peakMatrix[VariableData[,2]!="Unknown",]
   VariableData<-VariableData[VariableData[,2]!="Unknown",]
@@ -452,8 +465,8 @@ if(!onlyReportWithID)
 sep_covWithGroup<-function(X,groups)
 {
   lft_f<-X
-  
-  
+
+
   dt<-list()
   dt_cov<-list()
   for(x in unique(groups))
@@ -463,8 +476,8 @@ sep_covWithGroup<-function(X,groups)
     dt[[x]]<-get(x)
     dt_cov[[x]]<-get(paste(x,"_cov",sep=""))
   }
-  
-  
+
+
   return(list(dt,dt_cov))
 }
 
@@ -506,4 +519,3 @@ write.table(x = VariableData,file = outputVariables,
 
 write.table(x = sampleMetaData,file = outputMetaData,
             row.names = F,quote = F,sep = "\t")
-
