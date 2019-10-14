@@ -16,7 +16,6 @@ tags="Metabolomics"
 %post
 
 
-
 # Install packages for compilation
 # R -e 'source("https://bioconductor.org/biocLite.R"); biocLite("CAMERA")' && \
 apt-get -y update && apt-get -y --no-install-recommends install make gcc gfortran g++ libnetcdf-dev libxml2-dev libblas-dev liblapack-dev libssl-dev r-base-dev pkg-config git && \
