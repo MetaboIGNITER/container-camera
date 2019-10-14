@@ -1,5 +1,5 @@
 Bootstrap: docker
-From: container-registry.phenomenal-h2020.eu/phnmnl/xcms:dev_v1.53.1_cv0.1.84
+From: metaboigniter/container-xcms:v1.53.1
 %files
 scripts/*.r /usr/local/bin/
 runTest1.sh /usr/local/bin/runTest1.sh
