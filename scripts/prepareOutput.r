@@ -303,7 +303,7 @@ mappedToCamera<-metFragToCamera(metFragSearchResult = metfragRes,
 }else{
 
 VariableData<-data.frame(matrix("Unknown",nrow = nrow(cameraPeakList),
-                                                              ncol = 2,stringsAsFactors = F))
+                                                              ncol = 2),stringsAsFactors = F)
 colnames(VariableData)<-c("variableMetadata","extraColumn")
 VariableData[,"variableMetadata"]<-paste("variable_",1:nrow(cameraPeakList),sep="")
 }
