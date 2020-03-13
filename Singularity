@@ -24,6 +24,10 @@ R -e 'library(devtools); install_github(repo="sneumann/CAMERA", ref="cbc9cdb2eba
 apt-get -y --purge --auto-remove remove make gcc gfortran g++ libblas-dev liblapack-dev r-base-dev libssl-dev pkg-config && \
 apt-get -y clean && apt-get -y autoremove && rm -rf /var/lib/{cache,log}/ /tmp/* /var/tmp/*
 
+# Install zip package
+apt-get -y update && apt-get -y --no-install-recommends install make gcc gfortran g++ && \
+R -e 'source("https://bioconductor.org/biocLite.R");biocLite(c("zip"))'
+
 # Add scripts folder to container
 # Add files for testing
 

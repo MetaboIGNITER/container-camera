@@ -19,6 +19,10 @@ RUN apt-get -y update && apt-get -y --no-install-recommends install make gcc gfo
     apt-get -y --purge --auto-remove remove make gcc gfortran g++ libblas-dev liblapack-dev r-base-dev libssl-dev pkg-config && \
     apt-get -y clean && apt-get -y autoremove && rm -rf /var/lib/{cache,log}/ /tmp/* /var/tmp/*
 
+# Install zip package
+RUN  apt-get -y update && apt-get -y --no-install-recommends install make gcc gfortran g++ && \
+R -e 'source("https://bioconductor.org/biocLite.R");biocLite(c("zip"))'
+
 # Add scripts folder to container
 ADD scripts/*.r /usr/local/bin/
 # Add files for testing
@@ -26,4 +30,3 @@ ADD runTest1.sh /usr/local/bin/runTest1.sh
 
 RUN chmod +x /usr/local/bin/*.r
 RUN chmod +x /usr/local/bin/runTest1.sh
-
